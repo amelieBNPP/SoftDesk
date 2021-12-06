@@ -1,11 +1,42 @@
-from django.db import models
+from django.db import models, transaction
 from django.conf import settings
+from django.db.models.enums import Choices
+
+TAG = (
+    ('bug', 'Bug'),
+    ('feature', 'Feature'),
+    ('cosmetic', 'Cosmetic'),
+)
+
+TYPE = (
+    ('frontend', 'Frontend'),
+    ('backend', 'Backend'),
+    ('fullstack', 'Fullstack'),
+)
+
+ROLE = (
+    ('admin', 'Admin'),
+    ('po', 'PO'),
+    ('dev', 'Developer'),
+)
+
+PRIORITY = (
+    ('high', 'High'),
+    ('medium', 'Medium'),
+    ('low', 'Low'),
+)
+
+STATUS = (
+    ('new', 'New'),
+    ('in progress', 'In progress'),
+    ('done', 'Done'),
+)
 
 
 class Projects(models.Model):
     title = models.CharField(max_length=128)
-    description = models.IntegerField(default=0)
-    type = models.CharField(max_length=128)
+    description = models.CharField(max_length=2048, blank=True)
+    type = models.CharField(choices=TYPE, max_length=128)
     author = models.ForeignKey(
         to=settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -22,19 +53,19 @@ class Contributors(models.Model):
         on_delete=models.CASCADE,
     )
     permission = models.CharField(max_length=128)
-    role = models.CharField(max_length=128)
+    role = models.CharField(choices=ROLE, max_length=128)
 
 
 class Issues(models.Model):
     title = models.CharField(max_length=128)
     desc = models.CharField(max_length=2048, blank=True)
-    tag = models.CharField(max_length=128)
-    priority = models.CharField(max_length=128)
+    tag = models.CharField(choices=TAG, max_length=128)
+    priority = models.CharField(choices=PRIORITY, max_length=128)
     project = models.ForeignKey(
         to=Projects,
         on_delete=models.CASCADE,
     )
-    status = models.CharField(max_length=128)
+    status = models.CharField(choices=STATUS, max_length=128)
     author = models.ForeignKey(
         to=settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
