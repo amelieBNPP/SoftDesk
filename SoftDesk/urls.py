@@ -20,13 +20,13 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 
-from backend.views import ProjectsViewset
+from backend.views import ProjectsViewset, ContributorsViewset, IssuesViewset
 
 # Ici nous créons notre routeur
 router = routers.SimpleRouter()
-# Puis lui déclarons une url basée sur le mot clé ‘category’ et notre view
-# afin que l’url générée soit celle que nous souhaitons ‘/api/category/’
-router.register('project', ProjectsViewset, basename='project')
+router.register('projects', ProjectsViewset, basename='projects')
+router.register('contributors', ContributorsViewset, basename='contributors')
+router.register('issues', IssuesViewset, basename='issues')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
