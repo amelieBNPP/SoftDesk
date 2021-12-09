@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
 from rest_framework.serializers import ModelSerializer
+from rest_framework import serializers
 
-from backend.models import Contributors, Projects
+from backend.models import Comment, Contributors, Projects, Issues
 
 
 class UserSerializer(ModelSerializer):
@@ -15,6 +16,11 @@ class ProjectSerializer(ModelSerializer):
         model = Projects
         fields = ['title', 'description', 'type', 'author']
 
+    def validate_project(self, value):
+        if Projects.objects.filter(title=value).exists():
+            raise serializers.ValidationError('Project already exists')
+        return value
+
 
 class ContributorsSerializer(ModelSerializer):
     class Meta:
@@ -24,7 +30,7 @@ class ContributorsSerializer(ModelSerializer):
 
 class IssuesSerializer(ModelSerializer):
     class Meta:
-        model = Contributors
+        model = Issues
         fields = [
             'title',
             'desc',
@@ -34,5 +40,16 @@ class IssuesSerializer(ModelSerializer):
             'status',
             'author',
             'assignee',
+            'create_time',
+        ]
+
+
+class CommentSerializer(ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = [
+            'description',
+            'author',
+            'issue',
             'create_time',
         ]
