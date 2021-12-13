@@ -5,13 +5,14 @@ from django.db.models.enums import Choices
 TAG = (
     ('bug', 'Bug'),
     ('feature', 'Feature'),
-    ('cosmetic', 'Cosmetic'),
+    ('improvement', 'Improvement'),
 )
 
 TYPE = (
     ('frontend', 'Frontend'),
     ('backend', 'Backend'),
-    ('fullstack', 'Fullstack'),
+    ('iOS', 'iOS'),
+    ('android', 'Android'),
 )
 
 ROLE = (
@@ -27,7 +28,7 @@ PRIORITY = (
 )
 
 STATUS = (
-    ('new', 'New'),
+    ('to do', 'To do'),
     ('in progress', 'In progress'),
     ('done', 'Done'),
 )
