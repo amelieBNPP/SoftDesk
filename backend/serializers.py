@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
+from rest_framework.relations import StringRelatedField
 
 from backend.models import Comment, Contributors, Projects, Issues
 
@@ -17,9 +18,14 @@ class ProjectSerializer(ModelSerializer):
 
 
 class ContributorsSerializer(ModelSerializer):
+    user = serializers.SlugRelatedField(
+        queryset=User.objects.all(),
+        slug_field='username',
+    )
+
     class Meta:
         model = Contributors
-        fields = ['user', 'project', 'permission', 'role']
+        fields = ['id', 'user', 'project', 'permission', 'role']
 
 
 class IssuesSerializer(ModelSerializer):

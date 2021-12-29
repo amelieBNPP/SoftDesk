@@ -57,15 +57,35 @@ class ProjectsViewset(ModelViewSet):
 class ContributorsViewset(ModelViewSet):
     queryset = Contributors.objects.all()
     serializer_class = ContributorsSerializer
+    permission_classes = [IsAuthenticated]
 
-    # def list(self, request, project_pk=None):
-    #     pass
+    def list(self, request, project_pk=None):
+        project = get_object_or_404(Projects, pk=project_pk)
+        self.check_object_permissions(request, project)
+        if not Projects.objects.filter(pk=project_pk).exists():
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        queryset = Contributors.objects.filter(project=project_pk)
+        serializer = ContributorsSerializer(queryset, many=True)
+        return Response(serializer.data)
 
-    # def create(self, request, project_pk=None):
-    #     pass
+    def create(self, request, project_pk=None):
+        print(project_pk)
+        project = get_object_or_404(Projects, pk=project_pk)
+        self.check_object_permissions(request, project)
+        if 'project' not in request.data:
+            request.data.update({'project': str(project_pk)})
+        serializer = ContributorsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # def destroy(self, request, pk=None, project_pk=None):
-    #     pass
+    def destroy(self, request, pk=None, project_pk=None):
+        queryset = Contributors.objects.filter(pk=pk, project=project_pk)
+        contributor = get_object_or_404(queryset, pk=pk)
+        self.check_object_permissions(request, contributor)
+        contributor.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class IssuesViewset(ModelViewSet):
