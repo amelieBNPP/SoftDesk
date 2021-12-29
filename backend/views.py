@@ -1,26 +1,11 @@
-from rest_framework import serializers, status
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, ViewSet
-from rest_framework.response import Response
-from rest_framework.permissions import SAFE_METHODS, IsAuthenticated, BasePermission
-from django.shortcuts import get_object_or_404
-from django.contrib.auth.models import Permission, User
-from backend.models import STATUS, Projects, Contributors, Issues, Comment
+from rest_framework.views import APIView
 from backend.serializers import ProjectSerializer, ContributorsSerializer, IssuesSerializer, CommentSerializer
-
-
-class IsOwnerOrReadOnly(BasePermission):
-    """
-    Custom permission to only allow owners of an object to edit it.
-    """
-
-    def has_object_permission(self, request, view, obj):
-        # Read permissions are allowed to any request,
-        # so we'll always allow GET, HEAD or OPTIONS requests.
-        if request.method in SAFE_METHODS:
-            return True
-
-        # Write permissions are only allowed to the owner of the snippet.
-        return obj.owner == request.user
+from backend.models import STATUS, Projects, Contributors, Issues, Comment
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.response import Response
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 
 
 class ProjectsViewset(ModelViewSet):
@@ -40,7 +25,7 @@ class ProjectsViewset(ModelViewSet):
             'title': request.data['title'],
             'description': request.data['description'],
             'type': request.data['type'],
-            'author': request.data['author'],
+            'author': self.request.user.id,
         }
         serializer = ProjectSerializer(data=post_project)
         if serializer.is_valid():
@@ -57,7 +42,7 @@ class ProjectsViewset(ModelViewSet):
 
     def destroy(self, request, pk=None):
         # Supprimer un projet, ses problèmes, ses contributeurs et ses commentaires
-        project = get_object_or_404(self.queryset, pk=pk)
+        project = get_object_or_404(Projects, pk=pk)
         project.delete()
         contributors = Contributors.objects.filter(project=pk)
         contributors.delete()

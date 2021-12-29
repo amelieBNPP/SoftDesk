@@ -5,16 +5,10 @@ from rest_framework import serializers
 from backend.models import Comment, Contributors, Projects, Issues
 
 
-class UserSerializer(ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['url', 'username', 'email', 'groups']
-
-
 class ProjectSerializer(ModelSerializer):
     class Meta:
         model = Projects
-        fields = ['title', 'description', 'type', 'author']
+        fields = ['id', 'title', 'description', 'type', 'author']
 
     def validate_project(self, value):
         if Projects.objects.filter(title=value).exists():
