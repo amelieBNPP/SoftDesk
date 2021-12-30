@@ -22,8 +22,20 @@ project_router.register(
     basename='users',
 )
 
+issue_router = routers.NestedSimpleRouter(
+    project_router,
+    r'issues',
+    lookup='issue',
+)
+issue_router.register(
+    r'comments',
+    CommentViewSet,
+    basename='comments',
+)
+
 urlpatterns = [
     # Il faut bien penser à ajouter les urls du router dans la liste des urls disponibles.
     path('', include(router.urls)),
     path('', include(project_router.urls)),
+    path('', include(issue_router.urls)),
 ]
