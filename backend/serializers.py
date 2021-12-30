@@ -29,9 +29,15 @@ class ContributorsSerializer(ModelSerializer):
 
 
 class IssuesSerializer(ModelSerializer):
+    assignee = serializers.SlugRelatedField(
+        queryset=User.objects.all(),
+        slug_field='username',
+    )
+
     class Meta:
         model = Issues
         fields = [
+            'id',
             'title',
             'desc',
             'tag',
