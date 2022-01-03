@@ -1,11 +1,11 @@
-from rest_framework.views import APIView
 from backend.serializers import ProjectSerializer, ContributorsSerializer, IssuesSerializer, CommentSerializer
-from backend.models import STATUS, Projects, Contributors, Issues, Comment
+from backend.models import Projects, Contributors, Issues, Comment
+from backend.permission import IsProjectAuthor, IsProjectContributor
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
-from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 
 
 class ProjectsViewset(ModelViewSet):
@@ -17,7 +17,7 @@ class ProjectsViewset(ModelViewSet):
     # Nous récupérons tous les projets dans une variable nommée queryset
     queryset = Projects.objects.all()
     serializer_class = ProjectSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsProjectAuthor]
 
     def create(self, request):
         # Créer un projet et ajouter le contributeur à la liste de contributeur du projet
@@ -28,8 +28,8 @@ class ProjectsViewset(ModelViewSet):
             new_contributor = Contributors(
                 user=self.request.user,
                 project=Projects.objects.last(),
-                permission='admin',
-                role='admin',
+                permission='author',
+                role='author',
             )
             new_contributor.save()
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
@@ -38,6 +38,7 @@ class ProjectsViewset(ModelViewSet):
     def destroy(self, request, pk=None):
         # Supprimer un projet, ses problèmes, ses contributeurs et ses commentaires
         project = get_object_or_404(Projects, pk=pk)
+        self.check_object_permissions(request, project)
         project.delete()
         contributors = Contributors.objects.filter(project=pk)
         contributors.delete()
@@ -52,7 +53,7 @@ class ProjectsViewset(ModelViewSet):
 class ContributorsViewset(ModelViewSet):
     queryset = Contributors.objects.all()
     serializer_class = ContributorsSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsProjectAuthor]
 
     def list(self, request, project_pk=None):
         project = get_object_or_404(Projects, pk=project_pk)
@@ -64,7 +65,10 @@ class ContributorsViewset(ModelViewSet):
     def create(self, request, project_pk=None):
         project = get_object_or_404(Projects, pk=project_pk)
         self.check_object_permissions(request, project)
-        request.data.update({'project': str(project_pk)})
+        request.data.update({
+            'project': str(project_pk),
+            'permission': 'contributor',
+        })
         serializer = ContributorsSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -82,7 +86,7 @@ class ContributorsViewset(ModelViewSet):
 class IssuesViewset(ModelViewSet):
     queryset = Issues.objects.all()
     serializer_class = IssuesSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsProjectContributor]
 
     def list(self, request, project_pk=None):
         project = get_object_or_404(Projects, pk=project_pk)
@@ -135,7 +139,7 @@ class IssuesViewset(ModelViewSet):
 class CommentViewSet(ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsProjectContributor]
 
     def list(self, request, project_pk=None, issue_pk=None):
         project = get_object_or_404(Projects, pk=project_pk)
