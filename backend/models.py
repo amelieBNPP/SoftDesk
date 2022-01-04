@@ -21,6 +21,11 @@ ROLE = (
     ('dev', 'Developer'),
 )
 
+PERMISSION = (
+    ('author', 'Author'),
+    ('contributor', 'Contributor'),
+)
+
 PRIORITY = (
     ('high', 'High'),
     ('medium', 'Medium'),
@@ -53,7 +58,7 @@ class Contributors(models.Model):
         to=Projects,
         on_delete=models.CASCADE,
     )
-    permission = models.CharField(max_length=128)
+    permission = models.CharField(choices=PERMISSION, max_length=128)
     role = models.CharField(choices=ROLE, max_length=128)
 
 
