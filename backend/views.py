@@ -21,8 +21,9 @@ class ProjectsViewset(ModelViewSet):
 
     def create(self, request):
         # Créer un projet et ajouter le contributeur à la liste de contributeur du projet
-        request.data.update({'author': self.request.user.id})
-        serializer = ProjectSerializer(data=request.data)
+        request_data = request.data.copy()
+        request_data.update({'author': self.request.user.id})
+        serializer = ProjectSerializer(data=request_data)
         if serializer.is_valid():
             serializer.save()
             new_contributor = Contributors(
@@ -65,11 +66,12 @@ class ContributorsViewset(ModelViewSet):
     def create(self, request, project_pk=None):
         project = get_object_or_404(Projects, pk=project_pk)
         self.check_object_permissions(request, project)
-        request.data.update({
+        request_data = request.data.copy()
+        request_data.update({
             'project': str(project_pk),
             'permission': 'contributor',
         })
-        serializer = ContributorsSerializer(data=request.data)
+        serializer = ContributorsSerializer(data=request_data)
         if serializer.is_valid():
             serializer.save()
             return Response(status=status.HTTP_201_CREATED)
@@ -111,16 +113,21 @@ class IssuesViewset(ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, pk=None, project_pk=None):
+        print("la")
         queryset = Issues.objects.filter(pk=pk, project=project_pk)
+        print("ici")
         issue = get_object_or_404(queryset, pk=pk)
         self.check_object_permissions(request, issue)
-        request.data.update(
+        print("ok")
+        print(request)
+        request_data = request.data.copy()
+        request_data.update(
             {
                 'project': project_pk,
                 'author': self.request.user.id,
             }
         )
-        serializer = IssuesSerializer(issue, data=request.data)
+        serializer = IssuesSerializer(issue, data=request_data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
