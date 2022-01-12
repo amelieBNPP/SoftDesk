@@ -100,13 +100,14 @@ class IssuesViewset(ModelViewSet):
     def create(self, request, project_pk=None):
         project = get_object_or_404(Projects, pk=project_pk)
         self.check_object_permissions(request, project)
-        request.data.update(
+        request_data = request.data.copy()
+        request_data.update(
             {
                 'project': project_pk,
                 'author': self.request.user.id,
             }
         )
-        serializer = IssuesSerializer(data=request.data)
+        serializer = IssuesSerializer(data=request_data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
