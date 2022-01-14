@@ -160,14 +160,14 @@ class CommentViewSet(ModelViewSet):
     def create(self, request, project_pk=None, issue_pk=None):
         issue = get_object_or_404(Issues, pk=issue_pk)
         self.check_object_permissions(request, issue)
-        print(request.data)
-        request.data.update(
+        request_data = request.data.copy()
+        request_data.update(
             {
                 'issue': issue_pk,
                 'author': self.request.user.id,
             }
         )
-        serializer = CommentSerializer(data=request.data)
+        serializer = CommentSerializer(data=request_data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

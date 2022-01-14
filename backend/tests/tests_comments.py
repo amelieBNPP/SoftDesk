@@ -1,3 +1,4 @@
+from http import client
 import json
 from backend.models import Projects, Issues, Comment, Contributors
 from django.contrib.auth.hashers import make_password
@@ -6,7 +7,7 @@ from django.test import Client, TestCase
 from rest_framework import status
 
 
-class IssuesAPITestCase(TestCase):
+class CommentsAPITestCase(TestCase):
 
     def setUp(self) -> None:
 
@@ -67,73 +68,93 @@ class IssuesAPITestCase(TestCase):
             self.contributor2_info,
         )
 
-    def test_get_project_issues(self) -> None:
-        Issues.objects.create(
-            project=self.project1,
-            title='issue to manage',
-            desc='test ajout issue ',
-            tag='bug',
-            priority='medium',
-            status='in progress',
-            author=self.user_durant,
-            assignee=self.user_dupont,
+        self.issue1_info = {
+            'title': 'issue1',
+            'desc': 'manage issue 1',
+            'tag': 'bug',
+            'priority': 'medium',
+            'status': 'contributor',
+        }
+        self.issue1 = self._create_issue(
+            self.issue1_info, self.project1, self.user_dupont, self.user_durant,
+        )
+
+        self.issue2_info = {
+            'title': 'issue2',
+            'desc': 'manage issue 2',
+            'tag': 'feature',
+            'priority': 'low',
+            'status': 'contributor',
+        }
+        self.issue2 = self._create_issue(
+            self.issue2_info, self.project1, self.user_durant, self.user_dupont,
+        )
+
+    def test_get_issue_comments(self) -> None:
+        comment = Comment.objects.create(
+            description='comment 1 of issue 1',
+            author=self.user_dupont,
+            issue=self.issue1,
         )
         response = self.client_durant.get(
-            f'/api/projects/{self.project1.id}/issues/',
+            f'/api/projects/{self.project1.id}/issues/{self.issue1.id}/comments/',
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreater(len(json.loads(response.content)), 0)
 
-    def test_post_project_issue(self) -> None:
+    def test_post_issue_comments(self) -> None:
         request = {
-            'title': 'issue to manage',
-            'desc': 'test ajout issue ',
-            'tag': 'bug',
-            'priority': 'low',
-            'status': 'to do',
-            'assignee': self.user_dupont,
+            'description': 'comment 1 of issue 1',
         }
-        response = self.client_durant.post(
-            f'/api/projects/{self.project1.id}/issues/',
+        response = self.client_dupont.post(
+            f'/api/projects/{self.project1.id}/issues/{self.issue1.id}/comments/',
             request
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_delete_project_issue(self) -> None:
-        issue_id = Issues.objects.create(
-            project=self.project1,
-            title='issue to manage',
-            desc='test ajout issue ',
-            tag='bug',
-            priority='medium',
-            status='in progress',
-            author=self.user_durant,
-            assignee=self.user_dupont,
-        ).id
+    def test_update_issue_comments(self) -> None:
+        comment = Comment.objects.create(
+            description='comment 1 of issue 1',
+            author=self.user_dupont,
+            issue=self.issue1,
+        )
 
-        response = self.client_durant.delete(
-            f'/api/projects/{self.project1.id}/issues/{issue_id}/'
+        request = {
+            'description': 'update comment 1 of issue 1',
+        }
+        response = self.client_dupont.put(
+            f'/api/projects/{self.project1.id}/issues/{self.issue1.id}/comments/{comment.id}/',
+            request,
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            json.loads(response.content)['description'],
+            request['description'])
+
+    def test_delete_issue_comment(self) -> None:
+        comment = Comment.objects.create(
+            description='comment 1 of issue 1',
+            author=self.user_dupont,
+            issue=self.issue1,
+        )
+        response = self.client_dupont.delete(
+            f'/api/projects/{self.project1.id}/issues/{self.issue1.id}/comments/{comment.id}/',
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(len(Issues.objects.filter(pk=issue_id)), 0)
+        self.assertEqual(len(Comment.objects.filter(pk=comment.id)), 0)
 
-    def test_delete_project_issue_without_permission(self) -> None:
-        issue_id = Issues.objects.create(
-            project=self.project1,
-            title='issue to manage',
-            desc='test ajout issue ',
-            tag='bug',
-            priority='medium',
-            status='in progress',
-            author=self.user_durant,
-            assignee=self.user_dupont,
-        ).id
-
-        response = self.client_dupont.delete(
-            f'/api/projects/{self.project1.id}/issues/{issue_id}/'
+    def test_delete_issue_comment_without_permission(self) -> None:
+        comment = Comment.objects.create(
+            description='comment 1 of issue 1',
+            author=self.user_dupont,
+            issue=self.issue1,
+        )
+        response = self.client_durant.delete(
+            f'/api/projects/{self.project1.id}/issues/{self.issue1.id}/comments/{comment.id}/',
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(len(Issues.objects.filter(pk=issue_id)), 1)
+        self.assertEqual(len(Comment.objects.filter(pk=comment.id)), 1)
 
     def _get_client(self, client_info):
         response = self.client.post(
@@ -171,4 +192,17 @@ class IssuesAPITestCase(TestCase):
             project=contributor_info['project'],
             role=contributor_info['role'],
             permission=contributor_info['permission'],
+        )
+
+    @staticmethod
+    def _create_issue(issue_info, project, author, assignee) -> Issues:
+        return Issues.objects.create(
+            project=project,
+            title=issue_info['title'],
+            desc=issue_info['desc'],
+            tag=issue_info['tag'],
+            priority=issue_info['priority'],
+            status=issue_info['status'],
+            author=author,
+            assignee=assignee,
         )
