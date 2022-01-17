@@ -7,6 +7,10 @@ _Owner: [Amélie](https://github.com/ameliebnpp)_
 
 ## Developpement guide
 
+### General informations
+
+This project is developped with DRF (DjangoRestFull) and follow the OWASP rules.
+
 ### Installation
 
 1. Clone the project:
@@ -38,4 +42,9 @@ Server can be run using the following commands:
 ```bash
 python manage.py runserver
 ```
-## SoftDesk website
+
+The API can be tested in local at the following adresse : http://localhost:8000/api/
+### Postman documentation
+
+List and description of all termination points are documented here: [postman documentation](https://documenter.getpostman.com/view/14836417/UVXkoFcn)
+

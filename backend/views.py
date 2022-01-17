@@ -114,13 +114,9 @@ class IssuesViewset(ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, pk=None, project_pk=None):
-        print("la")
         queryset = Issues.objects.filter(pk=pk, project=project_pk)
-        print("ici")
         issue = get_object_or_404(queryset, pk=pk)
         self.check_object_permissions(request, issue)
-        print("ok")
-        print(request)
         request_data = request.data.copy()
         request_data.update(
             {
