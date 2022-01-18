@@ -1,5 +1,6 @@
+from email.policy import HTTP
 from backend.serializers import ProjectSerializer, ContributorsSerializer, IssuesSerializer, CommentSerializer
-from backend.models import Projects, Contributors, Issues, Comment
+from backend.models import STATUS, Projects, Contributors, Issues, Comment
 from backend.permission import IsProjectAuthor, IsProjectContributor
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -94,6 +95,15 @@ class IssuesViewset(ModelViewSet):
         project = get_object_or_404(Projects, pk=project_pk)
         self.check_object_permissions(request, project)
         queryset = Issues.objects.filter(project=project_pk)
+        if len(queryset) == 0:
+            return Response("no issue for this project")
+        serializer = IssuesSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None, project_pk=None):
+        issue = get_object_or_404(Issues, pk=pk, project=project_pk)
+        self.check_object_permissions(request, issue)
+        queryset = Issues.objects.filter(pk=pk)
         serializer = IssuesSerializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -148,8 +158,20 @@ class CommentViewSet(ModelViewSet):
     def list(self, request, project_pk=None, issue_pk=None):
         project = get_object_or_404(Projects, pk=project_pk)
         self.check_object_permissions(request, project)
+        issues = get_object_or_404(Issues, pk=issue_pk, project=project_pk)
+        queryset = Comment.objects.filter(issue=issues.id)
+        if len(queryset) == 0:
+            return Response("no comment for this project / issue")
+        serializer = CommentSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, project_pk=None, issue_pk=None, pk=None):
+        project = get_object_or_404(Projects, pk=project_pk)
+        self.check_object_permissions(request, project)
+        comment = get_object_or_404(Comment, issue=issue_pk, pk=pk)
         issues = Issues.objects.filter(project=project_pk)
-        queryset = Comment.objects.filter(issue__in=issues)
+        get_object_or_404(issues, pk=comment.issue.id)
+        queryset = Comment.objects.filter(issue__in=issues, pk=pk)
         serializer = CommentSerializer(queryset, many=True)
         return Response(serializer.data)
 
