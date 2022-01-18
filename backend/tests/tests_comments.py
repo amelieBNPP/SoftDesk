@@ -76,7 +76,10 @@ class CommentsAPITestCase(TestCase):
             'status': 'contributor',
         }
         self.issue1 = self._create_issue(
-            self.issue1_info, self.project1, self.user_dupont, self.user_durant,
+            self.issue1_info,
+            self.project1,
+            self.user_dupont,
+            self.user_durant,
         )
 
         self.issue2_info = {
@@ -87,7 +90,10 @@ class CommentsAPITestCase(TestCase):
             'status': 'contributor',
         }
         self.issue2 = self._create_issue(
-            self.issue2_info, self.project1, self.user_durant, self.user_dupont,
+            self.issue2_info,
+            self.project1,
+            self.user_durant,
+            self.user_dupont,
         )
 
     def test_get_issue_comments(self) -> None:
@@ -97,7 +103,8 @@ class CommentsAPITestCase(TestCase):
             issue=self.issue1,
         )
         response = self.client_durant.get(
-            f'/api/projects/{self.project1.id}/issues/{self.issue1.id}/comments/',
+            ('/api/projects/' + str(self.project1.id) +
+             '/issues/' + str(self.issue1.id) + '/comments/'),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreater(len(json.loads(response.content)), 0)
@@ -107,7 +114,8 @@ class CommentsAPITestCase(TestCase):
             'description': 'comment 1 of issue 1',
         }
         response = self.client_dupont.post(
-            f'/api/projects/{self.project1.id}/issues/{self.issue1.id}/comments/',
+            ('/api/projects/' + str(self.project1.id) +
+             '/issues/' + str(self.issue1.id) + '/comments/'),
             request
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -123,7 +131,9 @@ class CommentsAPITestCase(TestCase):
             'description': 'update comment 1 of issue 1',
         }
         response = self.client_dupont.put(
-            f'/api/projects/{self.project1.id}/issues/{self.issue1.id}/comments/{comment.id}/',
+            ('/api/projects/' + str(self.project1.id) +
+             '/issues/' + str(self.issue1.id) +
+             '/comments/' + str(comment.id) + '/'),
             request,
             content_type='application/json',
         )
@@ -139,7 +149,9 @@ class CommentsAPITestCase(TestCase):
             issue=self.issue1,
         )
         response = self.client_dupont.delete(
-            f'/api/projects/{self.project1.id}/issues/{self.issue1.id}/comments/{comment.id}/',
+            ('/api/projects/' + str(self.project1.id) +
+             '/issues/' + str(self.issue1.id) +
+             '/comments/' + str(comment.id) + '/'),
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(Comment.objects.filter(pk=comment.id)), 0)
@@ -151,7 +163,9 @@ class CommentsAPITestCase(TestCase):
             issue=self.issue1,
         )
         response = self.client_durant.delete(
-            f'/api/projects/{self.project1.id}/issues/{self.issue1.id}/comments/{comment.id}/',
+            ('/api/projects/' + str(self.project1.id) +
+             '/issues/' + str(self.issue1.id) +
+             '/comments/' + str(comment.id) + '/'),
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(len(Comment.objects.filter(pk=comment.id)), 1)

@@ -68,6 +68,7 @@ class IssuesAPITestCase(TestCase):
         )
 
     def test_get_project_issues(self) -> None:
+        """ Get all issue of a project """
         Issues.objects.create(
             project=self.project1,
             title='issue to manage',
@@ -85,6 +86,7 @@ class IssuesAPITestCase(TestCase):
         self.assertGreater(len(json.loads(response.content)), 0)
 
     def test_post_project_issue(self) -> None:
+        """ Add an issue to a specific project """
         request = {
             'title': 'issue to manage',
             'desc': 'test ajout issue ',
@@ -100,6 +102,7 @@ class IssuesAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_delete_project_issue(self) -> None:
+        """ Delete an issue from specific project """
         issue_id = Issues.objects.create(
             project=self.project1,
             title='issue to manage',
@@ -118,6 +121,7 @@ class IssuesAPITestCase(TestCase):
         self.assertEqual(len(Issues.objects.filter(pk=issue_id)), 0)
 
     def test_delete_project_issue_without_permission(self) -> None:
+        """ Test delete issue from a non contributor to the project """
         issue_id = Issues.objects.create(
             project=self.project1,
             title='issue to manage',
@@ -136,6 +140,7 @@ class IssuesAPITestCase(TestCase):
         self.assertEqual(len(Issues.objects.filter(pk=issue_id)), 1)
 
     def _get_client(self, client_info):
+        """ Create client with token """
         response = self.client.post(
             '/user/login/',
             {
@@ -150,6 +155,7 @@ class IssuesAPITestCase(TestCase):
 
     @ staticmethod
     def _create_user(client_info):
+        """ Create user """
         return User.objects.create(
             username=client_info['username'],
             password=make_password(client_info['password']),
@@ -157,6 +163,7 @@ class IssuesAPITestCase(TestCase):
 
     @ staticmethod
     def _create_project(project_info, author) -> None:
+        """ Create project """
         return Projects.objects.create(
             title=project_info['title'],
             description=project_info['description'],
@@ -166,6 +173,7 @@ class IssuesAPITestCase(TestCase):
 
     @staticmethod
     def _create_contributor(contributor_info) -> Contributors:
+        """ Create contributor """
         return Contributors.objects.create(
             user=contributor_info['user'],
             project=contributor_info['project'],

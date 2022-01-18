@@ -45,7 +45,7 @@ class AuthentificationAPITestCase(TestCase):
             'email': 'dupont@test.com',
             'password': 'MySecret00',
         }
-        response = self.client.post('/user/create/', client_info)
+        response = self.client.post('/user/signup/', client_info)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         response_json = json.loads(response.content)

@@ -5,6 +5,11 @@ from django.contrib.auth.models import User
 
 class IsProjectAuthor(BasePermission):
     def has_object_permission(self, request, view, obj):
+        """
+        For safe methode (GET) => return permission
+        Otherwise if the user is the author of the project => return permission
+        Otherwise => no permission is given
+        """
         if request.method in SAFE_METHODS:
             return True
         try:
@@ -21,6 +26,13 @@ class IsProjectAuthor(BasePermission):
 class IsProjectContributor(BasePermission):
 
     def has_object_permission(self, request, view, obj):
+        """
+        For safe methode (GET), if the user is a project's contributor
+        => return permission
+        Otherwise if the user is the author of the project => return permission
+        Otherwise => no permission is given
+        """
+
         if request.method in SAFE_METHODS:
             contributors = list(Contributors.objects.filter(
                 project=view.kwargs['project_pk']
@@ -31,7 +43,3 @@ class IsProjectContributor(BasePermission):
                 contributors_id.append(contributor['user'])
             return request.user.id in contributors_id
         return obj.author == request.user
-
-
-class IsProjectManager(BasePermission):
-    pass

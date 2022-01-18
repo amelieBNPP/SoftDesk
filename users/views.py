@@ -19,10 +19,13 @@ from SoftDesk.settings import JWT_AUTH
 
 
 class CreateUserView(APIView):
-    # Allow any user (authenticated or not) to access this url
+    """
+    Allow any user (authenticated or not) to access this url
+    """
     permission_classes = (AllowAny,)
 
     def post(self, request):
+        """Create an new user."""
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -31,6 +34,7 @@ class CreateUserView(APIView):
 
 class LoginUserView(APIView):
     def post(self, request):
+        """Get a token."""
         username = request.data['username']
         password = request.data['password']
 
@@ -45,7 +49,8 @@ class LoginUserView(APIView):
         payload = {
             'id': user.id,
             'username': user.username,
-            'exp': datetime.datetime.utcnow() + JWT_AUTH['JWT_EXPIRATION_DELTA'],
+            'exp': datetime.datetime.utcnow() +
+            JWT_AUTH['JWT_EXPIRATION_DELTA'],
             'iat': datetime.datetime.utcnow(),
         }
 
@@ -64,6 +69,8 @@ class LoginUserView(APIView):
 
 
 class UserView(APIView):
+    """View details about client logged."""
+
     def get(self, request):
         token = request.COOKIES.get('jwt')
 
@@ -82,11 +89,10 @@ class UserView(APIView):
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
-    def put(self, request):
-        pass
-
 
 class LogoutView(APIView):
+    """Logout, not used."""
+
     def post(self, request):
         response = Response()
         response.delete_cookie('jwt')

@@ -1,6 +1,11 @@
 from rest_framework import routers
 from rest_framework_nested import routers
-from backend.views import ProjectsViewset, ContributorsViewset, IssuesViewset, CommentViewSet
+from backend.views import (
+    ProjectsViewset,
+    ContributorsViewset,
+    IssuesViewset,
+    CommentViewSet,
+)
 from django.urls import path, include
 
 # Ici nous créons notre routeur
@@ -34,7 +39,6 @@ issue_router.register(
 )
 
 urlpatterns = [
-    # Il faut bien penser à ajouter les urls du router dans la liste des urls disponibles.
     path('', include(router.urls)),
     path('', include(project_router.urls)),
     path('', include(issue_router.urls)),

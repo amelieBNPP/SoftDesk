@@ -44,6 +44,13 @@ python manage.py runserver
 ```
 
 The API can be tested in local at the following adresse : http://localhost:8000/api/
+
+### Tests
+
+To ensure new features do not add any regression in the code, run the tests with the following commands : 
+```bash
+python manage.py test
+```
 ### Postman documentation
 
 List and description of all termination points are documented here: [postman documentation](https://documenter.getpostman.com/view/14836417/UVXkoFcn)

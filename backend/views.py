@@ -1,6 +1,10 @@
-from email.policy import HTTP
-from backend.serializers import ProjectSerializer, ContributorsSerializer, IssuesSerializer, CommentSerializer
-from backend.models import STATUS, Projects, Contributors, Issues, Comment
+from backend.serializers import (
+    ProjectSerializer,
+    ContributorsSerializer,
+    IssuesSerializer,
+    CommentSerializer,
+)
+from backend.models import Projects, Contributors, Issues, Comment
 from backend.permission import IsProjectAuthor, IsProjectContributor
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -11,8 +15,9 @@ from rest_framework.permissions import IsAuthenticated
 
 class ProjectsViewset(ModelViewSet):
     '''
-    This class allow to Create, Read, Update, Delete project. 
-    Read and Update project are created by default thanks to ModelViewSet class.
+    This class allow to Create, Read, Update, Delete project.
+    Read and Update project are created by default
+    thanks to ModelViewSet class.
     Create and Delete are overload below.
     '''
     # Nous récupérons tous les projets dans une variable nommée queryset
@@ -21,7 +26,9 @@ class ProjectsViewset(ModelViewSet):
     permission_classes = [IsAuthenticated, IsProjectAuthor]
 
     def create(self, request):
-        # Créer un projet et ajouter le contributeur à la liste de contributeur du projet
+        """
+        Create project and add contributor to contributor's project list.
+        """
         request_data = request.data.copy()
         request_data.update({'author': self.request.user.id})
         serializer = ProjectSerializer(data=request_data)
@@ -34,11 +41,19 @@ class ProjectsViewset(ModelViewSet):
                 role='author',
             )
             new_contributor.save()
-            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-        return Response(data=serializer.data, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                data=serializer.data,
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(
+            data=serializer.data,
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     def destroy(self, request, pk=None):
-        # Supprimer un projet, ses problèmes, ses contributeurs et ses commentaires
+        """
+        Delete a project, its issues, its contributors and comments.
+        """
         project = get_object_or_404(Projects, pk=pk)
         self.check_object_permissions(request, project)
         project.delete()
@@ -58,6 +73,7 @@ class ContributorsViewset(ModelViewSet):
     permission_classes = [IsAuthenticated, IsProjectAuthor]
 
     def list(self, request, project_pk=None):
+        """ GET all projects if permission"""
         project = get_object_or_404(Projects, pk=project_pk)
         self.check_object_permissions(request, project)
         queryset = Contributors.objects.filter(project=project_pk)
@@ -65,6 +81,7 @@ class ContributorsViewset(ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, project_pk=None):
+        """Create project if permission and add the owner as contributor."""
         project = get_object_or_404(Projects, pk=project_pk)
         self.check_object_permissions(request, project)
         request_data = request.data.copy()
@@ -79,6 +96,7 @@ class ContributorsViewset(ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, pk=None, project_pk=None):
+        """Delete project if permission and if object exist."""
         queryset = Contributors.objects.filter(pk=pk, project=project_pk)
         contributor = get_object_or_404(queryset, pk=pk)
         self.check_object_permissions(request, contributor)
@@ -92,6 +110,7 @@ class IssuesViewset(ModelViewSet):
     permission_classes = [IsAuthenticated, IsProjectContributor]
 
     def list(self, request, project_pk=None):
+        """ Get all issues for a specific project if permission. """
         project = get_object_or_404(Projects, pk=project_pk)
         self.check_object_permissions(request, project)
         queryset = Issues.objects.filter(project=project_pk)
@@ -101,6 +120,10 @@ class IssuesViewset(ModelViewSet):
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None, project_pk=None):
+        """
+        Get a specific issue for a specific project
+        if object exist and if permission.
+        """
         issue = get_object_or_404(Issues, pk=pk, project=project_pk)
         self.check_object_permissions(request, issue)
         queryset = Issues.objects.filter(pk=pk)
@@ -108,6 +131,7 @@ class IssuesViewset(ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, project_pk=None):
+        """ create issue if project exist and if permission"""
         project = get_object_or_404(Projects, pk=project_pk)
         self.check_object_permissions(request, project)
         request_data = request.data.copy()
@@ -124,6 +148,10 @@ class IssuesViewset(ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, pk=None, project_pk=None):
+        """
+        Update an issue if issue and project exists
+        and if permission
+        """
         queryset = Issues.objects.filter(pk=pk, project=project_pk)
         issue = get_object_or_404(queryset, pk=pk)
         self.check_object_permissions(request, issue)
@@ -141,6 +169,7 @@ class IssuesViewset(ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, pk=None, project_pk=None):
+        """Delete issue if project and issue exists and if permission"""
         queryset = Issues.objects.filter(pk=pk, project=project_pk)
         issue = get_object_or_404(queryset, pk=pk)
         self.check_object_permissions(request, issue)
@@ -156,6 +185,11 @@ class CommentViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, IsProjectContributor]
 
     def list(self, request, project_pk=None, issue_pk=None):
+        """
+        Get all comment for a specific project-issue
+        if project-issue exists
+        if permission.
+        """
         project = get_object_or_404(Projects, pk=project_pk)
         self.check_object_permissions(request, project)
         issues = get_object_or_404(Issues, pk=issue_pk, project=project_pk)
@@ -166,6 +200,11 @@ class CommentViewSet(ModelViewSet):
         return Response(serializer.data)
 
     def retrieve(self, request, project_pk=None, issue_pk=None, pk=None):
+        """
+        Get a specific comment for a specific project-issue
+        if project-issue-comment exists
+        if permission.
+        """
         project = get_object_or_404(Projects, pk=project_pk)
         self.check_object_permissions(request, project)
         comment = get_object_or_404(Comment, issue=issue_pk, pk=pk)
@@ -176,6 +215,10 @@ class CommentViewSet(ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, project_pk=None, issue_pk=None):
+        """
+        Create a comment for specific project-issue
+        if permission
+        """
         issue = get_object_or_404(Issues, pk=issue_pk)
         self.check_object_permissions(request, issue)
         request_data = request.data.copy()
@@ -192,6 +235,11 @@ class CommentViewSet(ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, pk=None, project_pk=None, issue_pk=None):
+        """
+        Update a comment for specific project-issue-comment
+        if the project-issue-comment exist and
+        if permission
+        """
         queryset = Comment.objects.filter(pk=pk, issue=issue_pk)
         comment = get_object_or_404(queryset, pk=pk)
         self.check_object_permissions(request, comment)
@@ -208,6 +256,10 @@ class CommentViewSet(ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, pk=None, project_pk=None, issue_pk=None):
+        """
+        Delete a specific project-issue-comment if object exist
+        if permission.
+        """
         queryset = Comment.objects.filter(pk=pk, issue=issue_pk)
         comment = get_object_or_404(queryset, pk=pk)
         self.check_object_permissions(request, comment)

@@ -29,6 +29,7 @@ class ContributorsAPITestCase(TestCase):
         self.client_dupont = self._get_client(self.client_dupont_info)
 
     def test_get_project_contributor(self) -> None:
+        """ Get all project contributor"""
         request = {
             'title': 'title1',
             'description': 'description1',
@@ -47,6 +48,7 @@ class ContributorsAPITestCase(TestCase):
         self.assertIn(project_author, contributors_id)
 
     def test_post_project_contributor(self) -> None:
+        """ Add a contributor to a specific project """
         request = {
             'title': 'title1',
             'description': 'description1',
@@ -75,6 +77,7 @@ class ContributorsAPITestCase(TestCase):
         self.assertEqual(contributors_init+1, contributors_final)
 
     def test_delete_project_contributor(self) -> None:
+        """ Delete contributor from specific project """
         request = {
             'title': 'title1',
             'description': 'description1',
@@ -102,6 +105,7 @@ class ContributorsAPITestCase(TestCase):
         self.assertEqual(contributors_init, contributors_final+1)
 
     def test_delete_project_contributor_without_permission(self) -> None:
+        """ Test delete contributor from a non contributor to the project """
         request = {
             'title': 'title1',
             'description': 'description1',
@@ -129,6 +133,7 @@ class ContributorsAPITestCase(TestCase):
         self.assertEqual(contributors_init, contributors_final)
 
     def _get_client(self, client_info):
+        """ Create client with token """
         response = self.client.post(
             '/user/login/',
             {
@@ -143,6 +148,7 @@ class ContributorsAPITestCase(TestCase):
 
     @ staticmethod
     def _create_user(client_info):
+        """ Create user """
         return User.objects.create(
             username=client_info['username'],
             password=make_password(client_info['password']),
@@ -150,6 +156,7 @@ class ContributorsAPITestCase(TestCase):
 
     @ staticmethod
     def _create_project(client, project) -> None:
+        """ Create project """
         response = client.post(
             '/api/projects/',
             project,
@@ -158,6 +165,7 @@ class ContributorsAPITestCase(TestCase):
 
     @staticmethod
     def _create_contributor(client, project_id, contributor) -> None:
+        """ Create contributor """
         request = {
             'user': contributor['username'],
             'role': 'dev',
