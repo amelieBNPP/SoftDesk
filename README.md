@@ -51,6 +51,8 @@ To ensure new features do not add any regression in the code, run the tests with
 ```bash
 python manage.py test
 ```
+![plot](./softDesk_tests_ok.png)
+
 ### Postman documentation
 
 List and description of all termination points are documented here: [postman documentation](https://documenter.getpostman.com/view/14836417/UVXkoFcn)
